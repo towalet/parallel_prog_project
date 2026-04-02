@@ -17,7 +17,9 @@ services:
   #     - ./output:/app/output
   #
   offer-letter:
-    build: ./service3_offer
+    build: 
+      context: ./service3_offer
+      dockerfile: Dockerfile_service3
     ports:
       - "5003:5003"
     volumes:
