@@ -1,0 +1,19 @@
+Date: {{CURRENT_DATE}}
+
+{{FIRST_NAME}} {{LAST_NAME}}
+{{STREET_ADDRESS}}
+{{CITY}}, {{POSTAL_CODE}}
+{{COUNTRY}}
+
+Account Number: {{ACCOUNT_NUMBER}}
+
+Dear {{FIRST_NAME}} {{LAST_NAME}},
+
+Welcome to our bank! We are excited to have you as a new customer.
+Your account is now active and ready for use.
+
+If you have any questions, please visit your local branch or call our
+support line.
+
+Sincerely,
+Customer Relations Team

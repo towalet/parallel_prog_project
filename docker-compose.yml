@@ -8,14 +8,16 @@ services:
     volumes:
       - ./data:/app/data
 
-  # welcome-letter:
-  #   build: ./service2_welcome
-  #   ports:
-  #     - "5002:5002"
-  #   volumes:
-  #     - ./data:/app/data
-  #     - ./output:/app/output
-  #
+  welcome-letter:
+    build:
+      context: ./service2_welcome
+      dockerfile: Dockerfile_service2
+    ports:
+      - "5002:5002"
+    volumes:
+      - ./data:/app/data
+      - ./output:/app/output
+
   offer-letter:
     build: 
       context: ./service3_offer
