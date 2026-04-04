@@ -39,51 +39,121 @@ We picked HTTP triggering because its the most straightforward approach. Each se
 
 We use a JSON file (data/customers.json) as our data source. It was converted from the sample CSV file that was provided. JSON works nicer with the HTTP based services since they already speak JSON natively.
 
-## How to Run
-run docker compose up --build
-service 1 test
-curl -X POST http://localhost:5001/validate this will generate the output texts
+## Run and Test 
 
-service 2 test
-curl -X POST http://localhost:5002/generate \
--H "Content-Type: application/json" \
--d '{
-  "customers": [
-    {
-      "FIRST_NAME": "Alice",
-      "LAST_NAME": "Smith",
-      "LETTER_TYPE": "welcome",
-      "ACCOUNT_NUMBER": "98765432",
-      "STREET_ADDRESS": "123 Maple St",
-      "CITY": "Toronto",
-      "POSTAL_CODE": "M5V 2T6",
-      "COUNTRY": "Canada"
-    }
-  ]
-}'
+1. Start Docker services:
 
-service 3 test
-curl -X POST http://localhost:5003/generate \
--H "Content-Type: application/json" \
--d '{
-  "customers": [
-    {
-      "FIRST_NAME": "Bob",
-      "LAST_NAME": "Jones",
-      "LETTER_TYPE": "offer",
-      "OFFER_TYPE": "Credit Card",
-      "CREDIT_LIMIT": "5000",
-      "ACCOUNT_NUMBER": "11223344",
-      "STREET_ADDRESS": "456 Oak Ave",
-      "CITY": "Vancouver",
-      "POSTAL_CODE": "V6B 1A1",
-      "COUNTRY": "Canada"
+```powershell
+docker compose up --build -d
+docker compose ps
+```
+
+2. check service health endpoints:
+
+```powershell
+Invoke-RestMethod -Method Get -Uri http://localhost:5001/health
+Invoke-RestMethod -Method Get -Uri http://localhost:5002/health
+Invoke-RestMethod -Method Get -Uri http://localhost:5003/health
+```
+
+### Service 1 Test (Validator)
+
+Run only Service 1 and verify validation output:
+
+```powershell
+Invoke-RestMethod -Method Post -Uri http://localhost:5001/validate | ConvertTo-Json -Depth 10
+```
+
+3. Test Service 2 (welcome letters):
+
+```powershell
+$welcomeBody = @{
+  customers = @(
+    @{
+      FIRST_NAME     = "Alice"
+      LAST_NAME      = "Smith"
+      LETTER_TYPE    = "welcome"
+      ACCOUNT_NUMBER = "98765432"
+      STREET_ADDRESS = "123 Maple St"
+      CITY           = "Toronto"
+      POSTAL_CODE    = "M5V 2T6"
+      COUNTRY        = "Canada"
     }
-  ]
-}'
+  )
+} | ConvertTo-Json -Depth 5
+
+Invoke-RestMethod -Method Post -Uri http://localhost:5002/generate -ContentType "application/json" -Body $welcomeBody
+```
+
+4. Test Service 3 (offer letters):
+
+```powershell
+$offerBody = @{
+  customers = @(
+    @{
+      FIRST_NAME     = "Bob"
+      LAST_NAME      = "Jones"
+      LETTER_TYPE    = "offer"
+      OFFER_TYPE     = "Credit Card"
+      CREDIT_LIMIT   = "5000"
+      ACCOUNT_NUMBER = "11223344"
+      STREET_ADDRESS = "456 Oak Ave"
+      CITY           = "Vancouver"
+      POSTAL_CODE    = "V6B 1A1"
+      COUNTRY        = "Canada"
+    }
+  )
+} | ConvertTo-Json -Depth 5
+
+Invoke-RestMethod -Method Post -Uri http://localhost:5003/generate -ContentType "application/json" -Body $offerBody
+```
+
+5. Test full pipeline through Service 1:
+
+```powershell
+Invoke-RestMethod -Method Post -Uri http://localhost:5001/validate | ConvertTo-Json -Depth 10
+```
+
+6. Check generated files:
+
+```powershell
+Get-ChildItem .\output
+```
+
+7. Stop services when done:
+
+```powershell
+docker compose down
+```
+
 ## Technologies Used
 
 - Python 3.11
 - Flask (web framework)
 - Docker and Docker Compose
 - HTTP REST for inter service communication
+
+## Who Did What
+
+1. Anthony Vydysh
+- Implemented Service 1 validator logic (`service1_validator/service1_validator.py`)
+- Added validation rules, invalid record marking, and service triggering flow
+- Maintained Docker setup for Service 1 (`service1_validator/Dockerfile_service1`)
+- Service 1 Docker requirements: `flask`, `requests`
+
+2. Rowan McFaul
+- Implemented Service 2 welcome letter generation and template substitution (`service2_welcome/service2_welcome.py`)
+- Maintained welcome template (`service2_welcome/templates/welcome_template.txt`)
+- Maintained Docker setup for Service 2 (`service2_welcome/Dockerfile_service2`)
+- Service 2 Docker requirements: `flask`
+
+3. Nick Mesti
+- Implemented Service 3 offer letter generation (`service3_offer/service3_offer.py`)
+- Implemented offer type + credit limit insertion for offer letters
+- Maintained Docker setup for Service 3 (`service3_offer/Dockerfile_service3`)
+- Service 3 Docker requirements: `flask`
+
+Shared tasks (distributed equally):
+- Integration testing with Docker Compose
+- README updates and run/test instructions
+- Validation of generated output letters

@@ -44,7 +44,7 @@ def generate_letters():
 
         letter_text = fill_template(template, customer)
 
-        filename = f"offer_{customer['FIRST_NAME']}_{customer['LAST_NAME']}.txt"
+        filename = f"welcome_{customer['FIRST_NAME']}_{customer['LAST_NAME']}.txt"
         filepath = os.path.join(OUTPUT_DIR, filename)
 
         with open(filepath, "w", encoding="utf-8") as f:
